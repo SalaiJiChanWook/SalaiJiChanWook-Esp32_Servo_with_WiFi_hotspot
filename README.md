@@ -1,53 +1,96 @@
-# ESP32 Servo Controller via Wi-Fi Access Point (AP Mode)
+# ESP32 Smart Box & Servo Controller (v2.0)
 
-[![Platform: ESP32](https://img.shields.io/badge/Platform-ESP32-blue.svg)](https://www.espressif.com/en/products/socs/esp32)
-[![Environment: Arduino IDE](https://img.shields.io/badge/Environment-Arduino%2520IDE-orange.svg)](https://www.arduino.cc/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+A dual-mode IoT project featuring an automatic contactless opening lid using an ultrasonic sensor (HC-SR04) and a built-in ESP32 Web Server interface for real-time distance telemetry and manual servo angle override.
 
-An intuitive IoT project that transforms an **ESP32 microcontroller** into a standalone Wi-Fi Access Point (Hotspot). It hosts a lightweight, responsive web server allowing users to seamlessly control servo motor angles wirelessly via a smartphone, tablet, or PC browser—**no external router or internet connection required!**
-
----
-
-## 🚀 Features
-
-* **Standalone Access Point (AP Mode):** The ESP32 broadcasts its own local Wi-Fi network, ensuring portability and plug-and-play operation anywhere.
-* **Embedded Web Dashboard:** Features a clean, responsive HTML/JavaScript control interface embedded directly into the ESP32 flash memory or served dynamically.
-* **Precise Servo Positioning:** Real-time angle adjustments (0° to 180°) via interactive sliders or buttons.
-* **Low Latency:** Direct socket/HTTP communication ensures instantaneous response times from device command to physical motion.
+![Project Status](https://img.shields.io/badge/status-active-brightgreen)
+![Version](https://img.shields.io/badge/version-2.0-blue)
+![Platform](https://img.shields.io/badge/platform-ESP32-red)
+![Framework](https://img.shields.io/badge/framework-Arduino-teal)
 
 ---
 
-## 🛠️ Hardware Requirements
+## What's New in Version 2.0
 
-* **ESP32 Development Board** (NodeMCU-32S, ESP32-WROOM-32, etc.)
-* **Servo Motor** (e.g., SG90 or MG996R)
-* **External Power Supply** (Recommended: 5V source for the servo motor to prevent ESP32 brownouts and voltage drops)
-* **Jumper Wires**
-* **Micro-USB Cable** (for programming/powering the ESP32)
-
----
-
-## 📌 Pinout & Wiring Configuration
-
-| ESP32 Pin | Servo Motor Pin | Description |
-| :--- | :--- | :--- |
-| **GPIO 13** (configurable) | Signal (Orange / Yellow) | PWM control signal |
-| **GND** | Ground (Brown / Black) | Common ground |
-| **External 5V / 3.3V** | VCC (Red) | Servo power supply *(Note: High-torque servos require an independent 5V supply with shared grounds)* |
+- **Dual-Mode Operation:** 
+  - **Auto Sensor Mode:** Detects objects/hands within 15 cm and automatically opens the lid for 3 seconds before closing.
+  - **Manual Web Mode:** Provides a clean mobile-friendly web interface with a real-time distance gauge and a manual trigger button.
+- **Pure LEDC PWM (No External Library):** Eliminates dependencies on third-party servo libraries; runs natively on ESP32 Core PWM hardware timers.
+- **Standalone Access Point (SoftAP):** Operates independently without requiring a home Wi-Fi router.
 
 ---
 
-## ⚙️ Software & Dependencies
+## Hardware Requirements
 
-Ensure you have the following installed in your **Arduino IDE**:
-
-1. **ESP32 Board Support Package** via Board Manager (`https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`).
-2. **ESP32 Servo Library** (Standard `ESP32Servo` library compatible with the ledc architecture).
+| Component | Quantity | Purpose |
+|---|---|---|
+| ESP32 Dev Board (30-pin / 38-pin) | 1 | Main micro-controller & Wi-Fi server |
+| Micro Servo (SG90 / MG90S) | 1 | Lid actuation mechanism |
+| Ultrasonic Sensor (HC-SR04 / HC-SR04P) | 1 | Distance detection |
+| Breadboard & Jumper Wires | 1 Set | Interfacing connections |
+| 5V Power Supply / USB Cable | 1 | System power |
 
 ---
 
-## 📥 Getting Started & Installation
+## Wiring Diagram
 
-1. **Clone the Repository:**
-   ```bash
-   git clone [https://github.com/SalaiJiChanWook/Esp32_Servo_with_WiFi_hotspot.git](https://github.com/SalaiJiChanWook/Esp32_Servo_with_WiFi_hotspot.git)
+Both the Servo Motor and the Ultrasonic Sensor share the **VIN (5V)** and **GND** rails via a breadboard.
+<img width="385" height="278" alt="image" src="https://github.com/user-attachments/assets/98b11919-45c2-405d-8aed-e25733802f83" />
+
+[ Servo SG90 ]                         |       |
+- Signal (Yellow/Orange) ------------+       |
+|
+[ HC-SR04 Sensor ]                             |
+- Trig --------------------------------------+
+- Echo ----------------------------------------------+
+
+### Pin Assignment Table
+
+| Peripheral | Peripheral Pin | ESP32 Pin | Logic Level |
+|---|---|---|---|
+| **Servo Motor** | VCC (Red) | **VIN** | 5V |
+| | GND (Brown/Black) | **GND** | 0V |
+| | Signal (Yellow/Orange) | **GPIO 13 (D13)** | 3.3V PWM |
+| **HC-SR04 Sensor** | VCC | **VIN** | 5V |
+| | GND | **GND** | 0V |
+| | Trig | **GPIO 4 (D4)** | 3.3V Output |
+| | Echo | **GPIO 19 (D19)** | Input |
+
+## Getting Started
+
+### 1. Prerequisites
+- [Arduino IDE](https://www.arduino.cc/en/software) (version 2.0+ recommended)
+- ESP32 Board package installed via Board Manager (`esp32` by Espressif Systems)
+
+### 2. Flashing the Code
+1. Open the project sketch (`.ino` file) in Arduino IDE.
+2. Under **Tools > Board**, select your target (e.g., `ESP32 Dev Module`).
+3. Connect your ESP32 to the PC via USB and select the corresponding **COM Port**.
+4. Click **Upload**.
+
+---
+
+## Usage Instructions
+
+1. **Power On:** Supply power to the ESP32 via USB (5V 2A adapter recommended).
+2. **Automatic Operation:** Place your hand within **15 cm** of the sensor. The servo will swing to 90° (open position), hold for 3 seconds, and return to 0° (closed position).
+3. **Web Interface Access:**
+   - On your phone or laptop, connect to the Wi-Fi network:
+     - **SSID:** `ESP32-Smart-Box`
+     - **Password:** `12345678`
+   - Open any browser and navigate to:
+     ```
+     [http://192.168.4.1](http://192.168.4.1)
+     ```
+   - Monitor live distance readings and trigger the manual open action directly from the web dashboard.
+
+---
+
+## Configuration Variables
+
+You can customize operational parameters directly in the code:
+
+```cpp
+const int TRIGGER_DISTANCE = 15;     // Detection threshold in centimeters
+const unsigned long OPEN_DURATION = 3000; // Lid hold time in milliseconds
+const int CLOSE_ANGLE = 0;          // Closed position (degrees)
+const int OPEN_ANGLE = 90;          // Open position (degrees)
